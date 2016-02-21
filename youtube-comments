@@ -1,0 +1,67 @@
+#!/bin/bash
+# Fetch all YouTube comments for a particular video
+
+set -e
+
+# This file isn't version controlled
+. local-settings.sh
+
+VIDEO_ID="$1"
+MAX_RESULTS=100
+ORDER=time # or "relevance"
+
+if ! which jq >/dev/null; then
+  echo "Please install jq" >&2
+  exit 1
+fi
+
+if [[ -z ${API_KEY} ]]; then
+  echo "No API_KEY defined" >&2
+  exit 1
+fi
+
+if [[ -z ${VIDEO_ID} ]]; then
+  echo "usage: $0 video_id"
+  exit 1
+fi
+
+NEXT_PAGE_TOKEN=initial
+
+while [[ -n ${NEXT_PAGE_TOKEN} ]]; do
+  # simulate a do-loop
+  if [[ ${NEXT_PAGE_TOKEN} = "initial" ]]; then
+    NEXT_PAGE_TOKEN=
+  fi
+
+  DATA=$(curl -s --get "https://www.googleapis.com/youtube/v3/commentThreads" \
+       -d key="${API_KEY}" \
+       -d "order=${ORDER}" \
+       -d "part=snippet,replies" \
+       -d "videoId=${VIDEO_ID}" \
+       -d "maxResults=${MAX_RESULTS}" \
+       -d "textFormat=plainText" \
+       -d "pageToken=${NEXT_PAGE_TOKEN}")
+
+  echo $DATA | jq -r '.items[] |
+    {
+      id :        .id,
+      date:       .snippet.topLevelComment.snippet.publishedAt,
+      author:     .snippet.topLevelComment.snippet.authorDisplayName,
+      comment:    .snippet.topLevelComment.snippet.textDisplay,
+      replyCount: .snippet.totalReplyCount,
+      replies: [.replies.comments[] | {
+        id:      .id,
+        date:    .snippet.publishedAt,
+        author:  .snippet.authorDisplayName,
+        comment: .snippet.textDisplay
+      }]
+    }
+  '
+
+  NEXT_PAGE_TOKEN=$(echo $DATA | jq -r '.nextPageToken')
+
+  if [[ -z ${NEXT_PAGE_TOKEN} || "${NEXT_PAGE_TOKEN}" = "null" ]]; then
+      echo "That's it .." >&2
+      exit 1;
+  fi
+done
