@@ -1,0 +1,52 @@
+#!/bin/bash
+# Format YouTube download data as HTML
+
+echo '
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+
+  <table>
+    <thead>
+      <tr>
+        <td>Id</td>
+        <td>Date</td>
+        <td>Author</td>
+        <td>Comment</td>
+        <td>Replies</td>
+      </tr>
+    </thead>
+    <tbody>
+'
+
+jq -r '. | "
+  <tr>
+    <td>\(.id)</td>
+    <td>\(.date)</td>
+    <td>\(.author)</td>
+    <td><pre>\(.comment)</pre></td>
+    <td>
+      <table>
+        \(.replies |
+          if length <= 0 then
+            ""
+          else
+            .[] | "
+              <tr>
+                <td>\(.id)</td>
+                <td>\(.date)</td>
+                <td>\(.author)</td>
+                <td><pre>\(.comment)</pre></td>
+              </tr>
+            "
+          end)
+      </table>
+    </td>
+  </tr>
+"'
+
+echo '
+    </tbody>
+  </body>
+</html>'
