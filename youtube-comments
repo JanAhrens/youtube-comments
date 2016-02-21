@@ -42,7 +42,7 @@ while [[ -n ${NEXT_PAGE_TOKEN} ]]; do
        -d "textFormat=plainText" \
        -d "pageToken=${NEXT_PAGE_TOKEN}")
 
-  echo $DATA | jq -r '.items[] |
+  echo $DATA | jq -r '.items[] | select(length > 0) |
     {
       id :        .id,
       date:       .snippet.topLevelComment.snippet.publishedAt,
