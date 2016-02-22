@@ -42,14 +42,14 @@ while [[ -n ${NEXT_PAGE_TOKEN} ]]; do
        -d "textFormat=plainText" \
        -d "pageToken=${NEXT_PAGE_TOKEN}")
 
-  echo $DATA | jq -r '.items[] | select(length > 0) |
+  echo $DATA | jq -r '.items[] |
     {
       id :        .id,
       date:       .snippet.topLevelComment.snippet.publishedAt,
       author:     .snippet.topLevelComment.snippet.authorDisplayName,
       comment:    .snippet.topLevelComment.snippet.textDisplay,
       replyCount: .snippet.totalReplyCount,
-      replies: [.replies.comments[] | {
+      replies: [.replies.comments | select(length > 0) | .[] | {
         id:      .id,
         date:    .snippet.publishedAt,
         author:  .snippet.authorDisplayName,

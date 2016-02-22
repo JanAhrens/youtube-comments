@@ -1,20 +1,34 @@
 #!/bin/bash
 # Format YouTube download data as HTML
 
+VIDEO_ID="$1"
+
+if [[ -z ${VIDEO_ID} ]]; then
+  echo "usage: $0 video_id"
+  exit 1
+fi
+
 echo '
 <!DOCTYPE html>
-<html>
-  <head></head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  </head>
   <body>
 
-  <table>
+  <div class="container">
+
+  Comments for YouTube video <a href="https://www.youtube.com/watch?v='${VIDEO_ID}'">'${VIDEO_ID}'</a>
+
+  <table class="table">
     <thead>
       <tr>
-        <td>Id</td>
         <td>Date</td>
         <td>Author</td>
         <td>Comment</td>
-        <td>Replies</td>
       </tr>
     </thead>
     <tbody>
@@ -22,11 +36,13 @@ echo '
 
 jq -r '. | "
   <tr>
-    <td>\(.id)</td>
     <td>\(.date)</td>
     <td>\(.author)</td>
-    <td><pre>\(.comment)</pre></td>
     <td>
+      <a href=\"https://www.youtube.com/watch?v='${VIDEO_ID}'&lc=\(.id)\">\(.comment)</a>
+      <p>
+        <strong>\(.replyCount) replies</strong>
+      </p>
       <table>
         \(.replies |
           if length <= 0 then
@@ -34,10 +50,8 @@ jq -r '. | "
           else
             .[] | "
               <tr>
-                <td>\(.id)</td>
-                <td>\(.date)</td>
+                <td>\(.comment)</td>
                 <td>\(.author)</td>
-                <td><pre>\(.comment)</pre></td>
               </tr>
             "
           end)
@@ -48,5 +62,6 @@ jq -r '. | "
 
 echo '
     </tbody>
+    </div>
   </body>
 </html>'
