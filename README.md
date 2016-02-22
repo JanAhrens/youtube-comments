@@ -8,4 +8,4 @@ API_KEY="<YOUR_YOUTUBE_API_KEY>"
 
 # Usage
 
-> ./youtube-comments S_RzBeC5ZJY | ./html-format > comments.html
+> ./download S_RzBeC5ZJY | ./transform | ./html-format S_RzBEC5ZJY > comments.html

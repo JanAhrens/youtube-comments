@@ -43,18 +43,17 @@ jq -r '. | "
       <p>
         <strong>\(.replyCount) replies</strong>
       </p>
-      <table>
-        \(.replies |
+      <table class=\"table\">" + ([.replies |
           if length <= 0 then
-            ""
+            "foo"
           else
-            .[] | "
+            (.[] | "
               <tr>
                 <td>\(.comment)</td>
                 <td>\(.author)</td>
               </tr>
-            "
-          end)
+              ")
+              end] | join("")) + "
       </table>
     </td>
   </tr>

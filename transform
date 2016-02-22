@@ -1,0 +1,25 @@
+#!/bin/bash
+# Extract YouTube comment data
+
+set -e
+
+if ! which jq >/dev/null; then
+  echo "Please install jq" >&2
+  exit 1
+fi
+
+jq -r '.items[] |
+  {
+    id :        .id,
+    date:       .snippet.topLevelComment.snippet.publishedAt,
+    author:     .snippet.topLevelComment.snippet.authorDisplayName,
+    comment:    .snippet.topLevelComment.snippet.textDisplay,
+    replyCount: .snippet.totalReplyCount,
+    replies: .replies.comments | select(length > 0) | [ reverse | .[] | {
+      id:      .id,
+      date:    .snippet.publishedAt,
+      author:  .snippet.authorDisplayName,
+      comment: .snippet.textDisplay
+    }]
+  }
+'
