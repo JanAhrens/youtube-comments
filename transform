@@ -8,18 +8,37 @@ if ! which jq >/dev/null; then
   exit 1
 fi
 
-jq -r '.items[] |
-  {
-    id :        .id,
-    date:       .snippet.topLevelComment.snippet.publishedAt,
-    author:     .snippet.topLevelComment.snippet.authorDisplayName,
-    comment:    .snippet.topLevelComment.snippet.textDisplay,
-    replyCount: .snippet.totalReplyCount,
-    replies: .replies.comments | select(length > 0) | [ reverse | .[] | {
-      id:      .id,
-      date:    .snippet.publishedAt,
-      author:  .snippet.authorDisplayName,
-      comment: .snippet.textDisplay
-    }]
-  }
-'
+# Join paginated JSON documents into a single document
+JSON=$(echo -n '['; paste -sd ','; echo -n ']')
+
+echo $JSON | jq -r '
+{
+  videoId: .[0].items[0].snippet.videoId,
+  commentCount: (
+    reduce (.[].items[]) as $item (0; . + 1 +
+      reduce ($item.replies.comments) as $item (0; . + 1)
+    )
+  ),
+  topLevelCommentCount: (
+    reduce (.[].items[].kind) as $item (0; . + 1)
+  ),
+  comments: [(.[].items[] |
+    {
+      id :        .id,
+      date:       .snippet.topLevelComment.snippet.publishedAt,
+      author:     .snippet.topLevelComment.snippet.authorDisplayName,
+      comment:    .snippet.topLevelComment.snippet.textDisplay,
+      likeCount:  .snippet.topLevelComment.snippet.likeCount,
+      videoId:    .snippet.videoId,
+      replyCount: .snippet.totalReplyCount,
+      replies: .replies.comments | select(length > 0) | [ reverse | .[] | {
+        id:        .id,
+        videoId:   .snippet.videoId,
+        date:      .snippet.publishedAt,
+        author:    .snippet.authorDisplayName,
+        comment:   .snippet.textDisplay,
+        likeCount: .snippet.likeCount
+      }]
+    }
+  )]
+}'
