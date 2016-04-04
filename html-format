@@ -8,44 +8,63 @@ jq -r '"<!DOCTYPE html>
     <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
     <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css\" integrity=\"sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7\" crossorigin=\"anonymous\">
+    <style>
+      .comment-text { width: 90%; }
+      .reply-text { width: 90%; }
+      pre { background-color: rgba(255,255,255,0); border: none; font-family: \"Helvetica Neue\", Helvetica, Arial,sans-serif; }
+      .replies-table { background-color: rgba(255,255,255,0) !important; }
+    </style>
   </head>
   <body>
 
   <div class=\"container\">
 
-  Comments for YouTube video <a href=\"https://www.youtube.com/watch?v=\(.videoId)\">\(.videoId)</a>
+  <h1>
+    Comments for YouTube video <a href=\"https://www.youtube.com/watch?v=\(.videoId)\">\(.videoId)</a>
+  </h1>
 
-  There are \(.topLevelCommentCount) top level comments and
-  \(.commentCount) comments in total.
+  <div class=\"row\">
+    <div class=\"col-md-offset-4 col-md-4\">
+      <table class=\"table table-bordered\">
+        <tr>
+          <td>Top level comments</td>
+          <td>\(.topLevelCommentCount)</td>
+        </tr>
+        <tr>
+          <td>Total comments comments</td>
+          <td>\(.commentCount)</td>
+        </tr>
+      </table>
+    </div>
+  </div>
 
-  <table class=\"table\">
+  <table class=\"table table-striped\">
     <thead>
       <tr>
-        <td>Date</td>
-        <td>Author</td>
-        <td>Comment</td>
+        <th>Author</th>
+        <th>Comment</th>
       </tr>
     </thead>
     <tbody>" +
 
  ([.comments[] | "
   <tr>
-    <td>\(.date)</td>
-    <td>\(.author)</td>
-    <td>
-      <a href=\"https://www.youtube.com/watch?v=\(.videoId)&lc=\(.id)\">\(.comment)</a>
+    <td class=\"comment-author\">\(.author)</td>
+    <td class=\"comment-text\">
+      <pre>\(.comment)</pre>
       <p>
         <strong>\(.likeCount) likes</strong> and
         <strong>\(.replyCount) replies</strong>
+        <a href=\"https://www.youtube.com/watch?v=\(.videoId)&lc=\(.id)\">\(.date)</a>
       </p>
-      <table class=\"table\">" + ([.replies |
+      <table class=\"table replies-table\">" + ([.replies |
           if length <= 0 then
             ""
           else
             (.[] | "
               <tr>
-              <td>\(.comment)<p><strong>\(.likeCount) likes</strong></p></td>
-                <td>\(.author)</td>
+                <td class=\"reply-text\"><pre>\(.comment)</pre><p><strong>\(.likeCount) likes</strong></p></td>
+                <td class=\"reply-author\">\(.author)</td>
               </tr>
               ")
               end] | join("")) + "

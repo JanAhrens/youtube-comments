@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+# Anonymize author names
+
+import hashlib
+import json
+import sys
+
+def anon(s):
+    h = hashlib.sha256()
+    h.update(s.encode('utf-8'))
+    return 'user ' + h.hexdigest()[:6]
+
+input = sys.stdin.read()
+
+data = json.loads(input)
+for comment in data['comments']:
+    comment['author'] = anon(comment['author'])
+    for reply in comment['replies']:
+        reply['author'] = anon(reply['author'])
+
+print json.dumps(data).encode('utf-8')
