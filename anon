@@ -8,7 +8,7 @@ import sys
 def anon(s):
     h = hashlib.sha256()
     h.update(s.encode('utf-8'))
-    return 'user ' + h.hexdigest()[:6]
+    return 'anon ' + h.hexdigest()[:6]
 
 input = sys.stdin.read()
 
